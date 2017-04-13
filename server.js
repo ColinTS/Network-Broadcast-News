@@ -4,6 +4,9 @@ const net = require('net');
 //stores people connected to chat
 var people = [];
 
+//stores usernames
+var usernames = [];
+
 //create server
 const server = net.createServer((connection) => {
   console.log('New connection');
@@ -18,8 +21,16 @@ const server = net.createServer((connection) => {
   connection.on('data', (chunk) => {
 
     if(chunk.toString().indexOf('@') === 0){
+      if(usernames.indexOf(chunk.toString().replace(/(\r\n|\n|\r)/gm,"")) !== -1
+        || chunk.toString().replace(/(\r\n|\n|\r)/gm,"") === '@admin'){
+        connection.write('That name already exists.');
+        return;
+      }
+      else {
         connection.name = chunk.toString().replace(/(\r\n|\n|\r)/gm,"");
+        usernames.push(chunk.toString().replace(/(\r\n|\n|\r)/gm,""));
         console.log(`${connection.name} has joined the channel`);
+      }
       }
 
     //sends user's message to everyone
