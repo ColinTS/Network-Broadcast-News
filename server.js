@@ -1,11 +1,8 @@
 /*jshint esversion: 6*/
 const net = require('net');
 
-//stores people in chat
+//stores people connected to chat
 var people = [];
-
-//stores usernames
-var username = [];
 
 //create server
 const server = net.createServer((connection) => {
@@ -17,30 +14,32 @@ const server = net.createServer((connection) => {
   //Get username
   connection.write('What is your @name?');
 
-  //RECEIVING MESSAGES FROM PEOPLE
+  //RECEIVING MESSAGES FROM USERS
   connection.on('data', (chunk) => {
 
-    console.log(chunk.toString());
-
     if(chunk.toString().indexOf('@') === 0){
-        username.push(chunk.toString());
+        connection.name = chunk.toString().replace(/(\r\n|\n|\r)/gm,"");
+        console.log(`${connection.name} has joined the channel`);
       }
 
-
-    //sends person's message to everyone
+    //sends user's message to everyone
     people.forEach(function(c, i) {
       //prevents sender's messages from being sent to themselves
       if(c === connection) {
         return;
       }
-       if(username.indexOf(`@${chunk.toString()}\n`) === -1){
-        connection.write('Please begin your username with @');
-        console.log(username.indexOf(`@${chunk.toString()}\n`));
-        console.log(username);
+      //prevents users from sending messages without setting a username.
+      if (connection.name === undefined){
+        connection.write('Start your name with an @');
         return;
-      } else {
-        c.write(`${username[i]}${chunk.toString()}`);
-    }
+      }
+      if(chunk.toString().indexOf('@') === 0){
+        c.write(`${connection.name} has joined the channel`);
+      }
+       else {
+        c.write(`${connection.name}: ${chunk.toString()}`);
+        console.log(`${connection.name}: ${chunk.toString()}`);
+      }
 
     });
   });
@@ -51,7 +50,7 @@ const server = net.createServer((connection) => {
       if(c === connection) {
         return;
       }
-       c.write(`[BIG KAHUNA]${chunk.toString()}`);
+       c.write(`[KAHUNA]: ${chunk.toString()}`);
     });
   });
 
